@@ -12,6 +12,7 @@ This project uses a Node.js backend to manage the "Survivor Log" (Hot Cloud Stor
    `git clone https://github.com/madhavbhardwaj77/magma-vault.git`
 2. Install dependencies:
    `npm install`
+   npm install express body-parser cors
 3. Start the server:
    `node server.js`
 4. Open `http://localhost:3000` to play with full features.
