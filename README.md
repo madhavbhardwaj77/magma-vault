@@ -3,7 +3,7 @@
 
 ## 🎮 Live Demo
 
-https://github.com/madhavbhardwaj77/magma-vault.git
+https://madhavbhardwaj77.github.io/magma-vault/
 
 ## 🚀 How to Run Full Version (With Backend)
 This project uses a Node.js backend to manage the "Survivor Log" (Hot Cloud Storage).
