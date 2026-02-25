@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magma Vault | Hot Cloud Protocol</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Black+Ops+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --neon-red: #ff3333;
+            --neon-orange: #ff9933;
+            --neon-blue: #00f3ff;
+            --vault-metal: #2a2a2a;
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- HUD --- */
+        #hud {
+            position: absolute; top: 20px; width: 90%;
+            display: flex; justify-content: space-between;
+            font-size: 1.5rem; z-index: 10; pointer-events: none;
+        }
+        .hud-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--neon-blue);
+            padding: 10px 20px; border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+        #heat-meter { border-color: var(--neon-red); color: var(--neon-red); }
+
+        /* --- VAULT --- */
+        #vault-container {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #333, #000);
+            border: 10px solid var(--vault-metal);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 5; transition: all 1s ease;
+        }
+        #vault-door {
+            width: 240px; height: 240px;
+            border-radius: 50%;
+            border: 5px dashed var(--neon-blue);
+            animation: spin 10s linear infinite;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #vault-status {
+            font-size: 2rem; font-family: 'Black Ops One';
+            color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue);
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- CLOUDS --- */
+        .cloud {
+            position: absolute; color: var(--neon-orange);
+            font-weight: bold; font-size: 1.2rem;
+            text-shadow: 0 0 5px var(--neon-red);
+            background: rgba(255, 69, 0, 0.1);
+            padding: 10px; border-radius: 20px;
+            border: 1px solid var(--neon-orange);
+            animation: floatUp 4s linear forwards;
+            z-index: 8;
+        }
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(0) scale(0.8); }
+            10% { opacity: 1; transform: translateY(-20px) scale(1); }
+            100% { opacity: 0; transform: translateY(-400px) scale(1.2); }
+        }
+
+        /* --- INPUT --- */
+        #input-zone {
+            position: absolute; bottom: 50px; z-index: 10;
+            width: 100%; display: flex; justify-content: center;
+        }
+        #code-input {
+            background: rgba(0, 0, 0, 0.8); border: 2px solid var(--neon-blue);
+            color: white; font-family: 'Share Tech Mono';
+            font-size: 2rem; padding: 15px; width: 300px;
+            text-align: center; text-transform: uppercase; outline: none;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); border-radius: 10px;
+        }
+        #code-input:focus {
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 30px rgba(255, 153, 51, 0.5);
+        }
+
+        /* --- SCREENS --- */
+        .screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 20;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+        }
+        .hidden { display: none !important; }
+
+        h1 { font-family: 'Black Ops One'; font-size: 4rem; color: var(--neon-orange); margin: 0; }
+        p { font-size: 1.2rem; max-width: 600px; color: #ccc; margin-bottom: 30px; }
+        
+        button {
+            background: linear-gradient(45deg, var(--neon-red), var(--neon-orange));
+            border: none; padding: 15px 40px; font-size: 1.5rem;
+            font-family: 'Share Tech Mono'; font-weight: bold;
+            color: white; cursor: pointer; border-radius: 5px;
+            box-shadow: 0 0 15px var(--neon-red); margin-top: 20px;
+        }
+        button:hover { transform: scale(1.1); }
+
+        /* LEADERBOARD STYLES */
+        #leaderboard-list {
+            list-style: none; padding: 0; width: 300px;
+            border: 1px solid var(--neon-blue);
+            background: rgba(0,0,0,0.8);
+            margin-bottom: 20px;
+        }
+        #leaderboard-list li {
+            padding: 10px; border-bottom: 1px solid #333;
+            display: flex; justify-content: space-between;
+        }
+        #leaderboard-list li:first-child { color: var(--neon-orange); font-weight: bold; }
+        
+        .save-form input {
+            padding: 10px; font-family: 'Share Tech Mono'; font-size: 1.2rem;
+            background: #333; border: 1px solid var(--neon-blue); color: white;
+        }
+
+        @media(max-width: 600px) {
+            h1 { font-size: 2.5rem; }
+            #code-input { width: 80%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" class="screen">
+        <h1>MAGMA VAULT</h1>
+        <p>Type the "Hot Cloud" data packets before they evaporate.<br>Secure 10 packets to unlock the Vault.</p>
+        <button onclick="startGame()">INITIATE HACK</button>
+    </div>
+
+    <div id="game-over-screen" class="screen hidden">
+        <h1 id="end-title">SYSTEM FAILURE</h1>
+        <p id="end-desc">The cloud data evaporated.</p>
+        
+        <div class="save-form" id="save-section">
+            <p>SAVE TO SURVIVOR LOG:</p>
+            <input type="text" id="player-name" placeholder="ENTER CODENAME" maxlength="10">
+            <button onclick="saveScore()" style="padding: 10px 20px; font-size: 1rem;">UPLOAD</button>
+        </div>
+
+        <div id="leaderboard-section" class="hidden">
+            <h2 style="color: var(--neon-blue);">TOP SURVIVORS</h2>
+            <ul id="leaderboard-list">Loading...</ul>
+            <button onclick="location.reload()">REBOOT SYSTEM</button>
+        </div>
+    </div>
+
+    <div id="hud">
+        <div class="hud-panel">LOCKED: <span id="score">0</span>/10</div>
+        <div class="hud-panel" id="heat-meter">TEMP: <span id="temp">0</span>%</div>
+    </div>
+
+    <div id="game-area">
+        <div id="vault-container">
+            <div id="vault-door"><div id="vault-status">LOCKED</div></div>
+        </div>
+    </div>
+
+    <div id="input-zone">
+        <input type="text" id="code-input" placeholder="TYPE DATA HERE" autocomplete="off">
+    </div>
+
+    <script>
+        // CONFIG
+        const WORDS = ["FIRE", "BURN", "HOT", "LAVA", "ASH", "KEY", "LOCK", "CODE", "DATA", "SAFE", "CLOUD"];
+        let score = 0;
+        let temperature = 0;
+        let gameActive = false;
+        let activeClouds = [];
+        let spawnTimer;
+        let tempTimer;
+
+        // ELEMENTS
+        const input = document.getElementById('code-input');
+        const gameArea = document.getElementById('game-area');
+        
+        // --- GAME LOGIC ---
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            gameActive = true;
+            input.focus();
+            spawnCloud();
+            tempTimer = setInterval(() => { if(gameActive) increaseTemp(1); }, 500);
+        }
+
+        function spawnCloud() {
+            if (!gameActive) return;
+            const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+            const cloud = document.createElement('div');
+            cloud.classList.add('cloud');
+            cloud.innerText = word;
+            cloud.style.left = (Math.random() * 80 + 10) + '%';
+            cloud.style.bottom = '100px';
+            gameArea.appendChild(cloud);
+            
+            const cloudObj = { el: cloud, word: word, id: Date.now() };
+            activeClouds.push(cloudObj);
+
+            setTimeout(() => {
+                if (cloud.parentNode) {
+                    cloud.remove();
+                    activeClouds = activeClouds.filter(c => c.id !== cloudObj.id);
+                    increaseTemp(15);
+                }
+            }, 3800);
+
+            spawnTimer = setTimeout(spawnCloud, Math.max(800, 2000 - (score * 100)));
+        }
+
+        function increaseTemp(amount) {
+            temperature = Math.min(100, temperature + amount);
+            document.getElementById('temp').innerText = temperature;
+            document.body.style.boxShadow = `inset 0 0 ${temperature * 2}px rgba(255, 50, 50, 0.5)`;
+            if (temperature >= 100) gameOver(false);
+        }
+
+        input.addEventListener('input', (e) => {
+            const typed = e.target.value.toUpperCase();
+            const matchIndex = activeClouds.findIndex(c => c.word === typed);
+            if (matchIndex !== -1) {
+                const matched = activeClouds[matchIndex];
+                matched.el.remove();
+                activeClouds.splice(matchIndex, 1);
+                input.value = '';
+                score++;
+                document.getElementById('score').innerText = score;
+                temperature = Math.max(0, temperature - 5);
+                if (score >= 10) gameOver(true);
+            }
+        });
+
+        function gameOver(win) {
+            gameActive = false;
+            clearTimeout(spawnTimer);
+            clearInterval(tempTimer);
+            
+            const screen = document.getElementById('game-over-screen');
+            screen.classList.remove('hidden');
+            
+            const title = document.getElementById('end-title');
+            if (win) {
+                title.innerText = "ACCESS GRANTED";
+                title.style.color = "#00f3ff";
+                document.getElementById('end-desc').innerText = "Vault Unlocked. Upload your ID to the Survivor Log.";
+            } else {
+                title.innerText = "SYSTEM MELTDOWN";
+                title.style.color = "#ff3333";
+                document.getElementById('end-desc').innerText = "Mission Failed. Log your attempt.";
+            }
+        }
+
+        // --- BACKEND CONNECTION (The Node.js Part) ---
+        async function saveScore() {
+            const name = document.getElementById('player-name').value;
+            if(!name) return alert("ENTER NAME");
+
+            // 1. Send Score to Node Server
+            try {
+                await fetch('/api/score', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, score })
+                });
+
+                // 2. Hide Form, Show Leaderboard
+                document.getElementById('save-section').classList.add('hidden');
+                document.getElementById('leaderboard-section').classList.remove('hidden');
+                
+                loadLeaderboard();
+            } catch (err) {
+                console.error(err);
+                alert("SERVER ERROR: Ensure Node is running!");
+            }
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const res = await fetch('/api/leaderboard');
+                const data = await res.json();
+                
+                const list = document.getElementById('leaderboard-list');
+                list.innerHTML = "";
+                data.forEach(player => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${player.name}</span> <span>${player.score}</span>`;
+                    list.appendChild(li);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
